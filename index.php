@@ -1,3 +1,42 @@
+<?php
+session_start();
+include_once("../db.php");
+
+// Check if the user is logged in and active
+if (isset($_SESSION['user_info']['username'])) {
+    $username = $_SESSION['user_info']['username'];
+    $userQuery = "SELECT user_id, user_type, user_status FROM users WHERE username ='$username'";
+    $userResult = mysqli_query($conn, $userQuery);
+
+    if ($userResult !== false) {
+        $userData = mysqli_fetch_assoc($userResult);
+
+        // Check if the user is active
+        if ($userData['user_status'] !== 'A') {
+          header("Location: ../log_in.php?Sorry, you're not allowed here. User not active.");
+            exit();
+        }
+
+        // Check user type
+        if ($userData['user_type'] !== 'U') {
+          header("Location: ../log_in.php?Sorry, you're not allowed here. Invalid user type");
+            exit();
+        }
+
+        $user_id = $userData['user_id'];
+        $_SESSION['user_info']['user_id'] = $user_id;
+        mysqli_free_result($userResult);
+    } else {
+        echo "Error: " . mysqli_error($conn);
+        exit();
+    }
+} else {
+    header("Location: ../log_in.php?msg=no_user_found");
+    exit();
+}
+
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,102 +44,139 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visitor Homepage</title>
-    <link rel="stylesheet" href="/bootstrap-5.3.2-dist/css/bootstrap.css">
+    <title>Homepage</title>
+    <link rel="stylesheet" href="../bootstrap-5.3.2-dist/css/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="../style.css" />
-    <!-- Add other CSS stylesheets if needed -->
-    <style>
-        .navbar-container {
-            display: flex;
-            justify-content: space-between; /* Updated to space-between */
-            align-items: center;
-            background-color: #f8f9fa;
-            padding: 10px;
-        }
-
-        .navbar-logo,
-        .navbar-search {
-            display: flex;
-            align-items: center;
-        }
-
-        .navbar-logo img {
-            margin-right: 10px; /* Add margin for spacing between logo and search */
-        }
-
-        .navbar-search form {
-            margin-bottom: 0;
-        }
-
-        .nav-item {
-            margin-right: 15px;
-        }
-
-        .nav-link {
-            margin-bottom: 0;
-        }
-        
-        .picture-container {
-            display: flex;
-            justify-content: space-between; /* Updated to space-between */
-            align-items: center;
-            background-color: rgb(238, 237, 226);
-            padding: 5px;
-        }
-
-        .text {
-            margin-right: 5%; 
-            margin-bottom: 15%;
-            font-size: 30px;
-        }
-        
-       
-
-    </style>
+    
 </head>
-<header>
-
-<body style="background-color: rgb(238, 237, 226);">
-
-    <div class="container-fluid navbar-container">
-        <div class="navbar-logo">
-            <a><img src="tc.jpg" alt="Logo" width="40" height="24" class="d-inline-block align-text-top">TOKEN CORE</a>
-    </div>
-            <nav class="nav-item" style="margin-left: 80%">  
-                <a class="nav-link" href="index.php">Login</a>
-            </nav>
-            <nav class="nav-item">
-                <a class="nav-link" href="registration.php">Signup</a>
-            </nav>
+<body>
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+        <div class="row justify-content-center align-items-center">
+            <div class="col-md-4 mb-5 text-center">
+                <a class="navbar-brand" href="#"><img src="../pictures/token core logo.jpg " width=40% height=40% ></a>
+            </div>
+            <div class="col-md-4 justify-content-center"> <!-- Adjusted the column width -->
+                <?php
+                if (isset($_SESSION['user_info']['username'])) {
+                    echo "<h3>Hi, {$_SESSION['user_info']['username']}! Welcome to TOKEN CORE!</h3>";
+                } else {
+                    echo "<h3>Welcome to TOKEN CORE!</h3>";
+                }
+                ?>
+            </div>
+            <div class="col-md-4 mb-5 text-center">
+            <a class="nav-link" href="logout.php">Logout</a>
+            <a href="logout.php" class="btn-outline-danger"><?php echo $_SESSION['user_info']['username']?></a>
+            </div> 
         </div>
     </div>
-    </header>
-    <hr />
-
-    <div class="container mt-4 text-center">
-        <nav class="navbar-links d-inline-block">
-            <a class="nav-link active navbar-link" aria-current="page" href="index.php">Home</a>
-            <a class="nav-link navbar-link" href="visitor_explore.php">Explore</a>
-            <a class="nav-link navbar-link" href="#">Contact</a>
-            <a class="nav-link navbar-link" href="about_us.php">About Us</a>
-        </nav>
+</nav>
+<br>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-4 col-sm-6">
+      <form class="d-flex" role="search">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
     </div>
-      
-    <div class="container-fluid picture-container">
-        <div class="img">
-            <img src="token core logo.jpg" />
-        </div>
-       <div class="text">
-                <h1>TOKEN CORE</h1><span>
-                    <h3 style="font-size:20px"> The merchandise in which full of surprises awaits you. </h3>
-                </span><span><button style="background-color:beige"  href="visitor_explore.php">Explore</button>
-                    </span> 
-    </div>   
+    <div class="col-md-6 col-sm-6">
+      <ul class="nav nav-underline justify-content-end">
+        <li class="nav-item">
+          <a class="nav-link" href="cart.php">Cart</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="order_history.php">Order History</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+<hr>
+<nav>
+  
+<ul class="nav nav-underline justify-content-center">
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="#"><h3>Home </h3></a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="explore.php"><h3>Explore</h3></a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#"><h3>Deals</h3></a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#"> <h3>About Us</h3></a>
+  </li>
+</ul>
+</nav>
+<br>
+<br>
 
-    <script src="/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>
+<div id="carouselExampleSlidesOnly" class="carousel slide" data-bs-ride="carousel">
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img src="../pictures/carousel_image.jpg" class="d-block w-10" alt="...">
+    </div>
+    <div class="carousel-item">
+      <img src="../.jpg" class="d-block w-10" alt="...">
+    </div>
+    <div class="carousel-item">
+      <img src="../pictures/346992-Sunset-Road-Landscape-Scenery.jpg" class="d-block w-10" alt="...">
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js"></script>
+
+<script>
+
+  var myCarousel = new bootstrap.Carousel(document.getElementById('carouselExampleSlidesOnly'), {
+    interval: 2000 
+  });
+</script>
+
+   <br> 
+  <br>
+
    
-    
+  <div class="row">
+    <?php
+
+    // Check category status and display categories
+$categories_query = "SELECT * FROM categories WHERE cat_status = 'A'";
+$categories_result = mysqli_query($conn, $categories_query);
+
+if ($categories_result !== false) {
+  while ($category = mysqli_fetch_assoc($categories_result)) {
+      echo "<div class='col-3'>";
+      echo "<div class='card mb-3'>";
+      echo "<a href='explore.php#{$category['cat_id']}'>";
+      echo "<img src='../pictures/{$category['cat_image']}' class='card-img-top' alt='...' usemap='#{$category['cat_name']}' width='400' height='379'>";
+      echo "</a>";
+      echo "<map name='{$category['cat_name']}'>";
+      echo "<area shape='rect' coords='0,0,400,379' alt='...' href='explore.php#{$category['cat_id']}'>";
+      echo "</map>";
+      echo "<div class='card-body'>";
+      echo "<h5 class='card-title'>{$category['cat_name']}</h5>";
+      echo "<p class='card-text'>{$category['cat_description']}</p>";
+      echo "</div>";
+      echo "</div>";
+      echo "</div>";
+  }
+
+
+  mysqli_free_result($categories_result);
+} else {
+    echo "Error: " . mysqli_error($conn);
+}
+
+mysqli_close($conn);
+    ?>
+</div>
+
 </body>
-    
 
 </html>
